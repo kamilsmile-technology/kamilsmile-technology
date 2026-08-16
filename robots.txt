@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kamilsmile-technology.github.io/sitemap.xml
