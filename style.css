@@ -587,11 +587,13 @@ footer p {
 
     transition: 0.3s;
 }
+}
 
 .whatsapp-button:hover {
     background: #20b957;
     transform: translateY(-3px);
 =======
+}
 * {
     margin: 0;
     padding: 0;
@@ -1292,11 +1294,7 @@ footer p {
 .whatsapp-button:hover {
     background: #20b957;
     transform: translateY(-3px);
-<<<<<<< HEAD
->>>>>>> fb5bb88 (Improve mobile responsiveness)
-=======
 }
-
 @media (max-width: 650px) {
 
     html {
