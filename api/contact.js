@@ -17,15 +17,21 @@ module.exports = async function handler(request, response) {
         return response.status(405).json({ error: "Method not allowed." });
     }
 
-    const { name, email, message } = request.body || {};
-    const normalizedEmail = typeof email === "string" ? email.trim() : "";
+    const fields = request.body && typeof request.body === "object"
+        ? request.body
+        : {};
+    const name = typeof fields.name === "string" ? fields.name.trim() : "";
+    const normalizedEmail = typeof fields.email === "string"
+        ? fields.email.trim()
+        : "";
+    const message = typeof fields.message === "string"
+        ? fields.message.trim()
+        : "";
 
     if (
-        typeof name !== "string" ||
-        name.trim().length < 2 ||
+        name.length < 2 ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) ||
-        typeof message !== "string" ||
-        message.trim().length < 10
+        message.length < 10
     ) {
         return response.status(400).json({
             error: "Please provide a valid name, email address, and message."
@@ -38,9 +44,16 @@ module.exports = async function handler(request, response) {
         });
     }
 
-    const safeName = escapeHtml(name.trim());
-    const safeEmail = escapeHtml(normalizedEmail);
-    const safeMessage = escapeHtml(message.trim()).replace(/\n/g, "<br>");
+    const submittedFields = Object.entries(fields)
+        .map(function ([fieldName, fieldValue]) {
+            const value = Array.isArray(fieldValue)
+                ? fieldValue.join(", ")
+                : String(fieldValue ?? "");
+            const label = fieldName.replace(/[-_]+/g, " ");
+            return "<p><strong>" + escapeHtml(label) + ":</strong> " +
+                escapeHtml(value).replace(/\n/g, "<br>") + "</p>";
+        })
+        .join("");
 
     try {
         const resendResponse = await fetch(RESEND_ENDPOINT, {
@@ -53,12 +66,10 @@ module.exports = async function handler(request, response) {
                 from: process.env.RESEND_FROM_EMAIL || "KAMILSMILE TECHNOLOGY <onboarding@resend.dev>",
                 to: [process.env.RESEND_TO_EMAIL],
                 reply_to: normalizedEmail,
-                subject: "New website message from " + name.trim(),
+                subject: "New website message from " + name,
                 html:
                     "<h2>New contact message</h2>" +
-                    "<p><strong>Name:</strong> " + safeName + "</p>" +
-                    "<p><strong>Email:</strong> " + safeEmail + "</p>" +
-                    "<p><strong>Message:</strong><br>" + safeMessage + "</p>"
+                    submittedFields
             })
         });
 

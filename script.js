@@ -45,7 +45,20 @@ contactForm.addEventListener("submit", async function (event) {
 
     const submitButton = contactForm.querySelector("button[type='submit']");
     const formStatus = document.getElementById("formStatus");
-    const name = document.getElementById("name").value.trim();
+    const formData = new FormData(contactForm);
+    const formValues = {};
+
+    for (const [fieldName, fieldValue] of formData.entries()) {
+        if (Object.prototype.hasOwnProperty.call(formValues, fieldName)) {
+            formValues[fieldName] = Array.isArray(formValues[fieldName])
+                ? formValues[fieldName].concat(fieldValue)
+                : [formValues[fieldName], fieldValue];
+        } else {
+            formValues[fieldName] = fieldValue;
+        }
+    }
+
+    const name = String(formValues.name || "").trim();
 
     submitButton.disabled = true;
     submitButton.textContent = "Sending...";
@@ -57,11 +70,7 @@ contactForm.addEventListener("submit", async function (event) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                name,
-                email: document.getElementById("email").value.trim(),
-                message: document.getElementById("message").value.trim()
-            })
+            body: JSON.stringify(formValues)
         });
 
         const result = await response.json();
