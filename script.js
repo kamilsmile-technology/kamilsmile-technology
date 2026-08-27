@@ -39,19 +39,46 @@ const contactForm =
     document.getElementById("contactForm");
 
 
-contactForm.addEventListener("submit", function (event) {
+contactForm.addEventListener("submit", async function (event) {
 
     event.preventDefault();
 
-    const name =
-        document.getElementById("name").value;
+    const submitButton = contactForm.querySelector("button[type='submit']");
+    const formStatus = document.getElementById("formStatus");
+    const name = document.getElementById("name").value.trim();
 
-    alert(
-        "Thank you, " +
-        name +
-        "! Your message has been received."
-    );
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending...";
+    formStatus.textContent = "";
 
-    contactForm.reset();
+    try {
+        const response = await fetch("/api/contact", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email: document.getElementById("email").value.trim(),
+                message: document.getElementById("message").value.trim()
+            })
+        });
 
-})
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || "Unable to send your message.");
+        }
+
+        formStatus.textContent =
+            "Thank you, " + name + "! Your message has been sent.";
+        contactForm.reset();
+    } catch (error) {
+        formStatus.textContent =
+            error.message || "Something went wrong. Please try again.";
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "Send Message";
+    }
+
+});
