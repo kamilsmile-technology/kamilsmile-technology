@@ -39,55 +39,17 @@ const contactForm =
     document.getElementById("contactForm");
 
 
-contactForm.addEventListener("submit", async function (event) {
+contactForm.addEventListener("submit", function (event) {
 
-    event.preventDefault();
-
-    const submitButton = contactForm.querySelector("button[type='submit']");
-    const formStatus = document.getElementById("formStatus");
-    const formData = new FormData(contactForm);
-    const formValues = {};
-
-    for (const [fieldName, fieldValue] of formData.entries()) {
-        if (Object.prototype.hasOwnProperty.call(formValues, fieldName)) {
-            formValues[fieldName] = Array.isArray(formValues[fieldName])
-                ? formValues[fieldName].concat(fieldValue)
-                : [formValues[fieldName], fieldValue];
-        } else {
-            formValues[fieldName] = fieldValue;
-        }
+    if (!contactForm.checkValidity()) {
+        event.preventDefault();
+        contactForm.reportValidity();
+        return;
     }
 
-    const name = String(formValues.name || "").trim();
+    const submitButton = contactForm.querySelector("button[type='submit']");
 
     submitButton.disabled = true;
     submitButton.textContent = "Sending...";
-    formStatus.textContent = "";
-
-    try {
-        const response = await fetch("/api/contact", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(formValues)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || "Unable to send your message.");
-        }
-
-        formStatus.textContent =
-            "Thank you, " + name + "! Your message has been sent.";
-        contactForm.reset();
-    } catch (error) {
-        formStatus.textContent =
-            error.message || "Something went wrong. Please try again.";
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = "Send Message";
-    }
 
 });
